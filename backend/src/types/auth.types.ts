@@ -3,7 +3,7 @@ export interface User {
   email: string;
   first_name: string;
   last_name: string;
-  role: 'Admin' | 'Resident';
+  role: 'Staff' | 'Resident';
   phone_number?: string;
   unit_number?: string;
 }

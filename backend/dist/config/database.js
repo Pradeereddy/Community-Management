@@ -1,27 +1,21 @@
-
-import { Pool } from 'pg';
-import dotenv from 'dotenv';
-
-dotenv.config();
-
-const pool = new Pool({
-  connectionString: process.env.DATABASE_URL3,
-  ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false
+"use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+const pg_1 = require("pg");
+const dotenv_1 = __importDefault(require("dotenv"));
+dotenv_1.default.config();
+const pool = new pg_1.Pool({
+    connectionString: process.env.DATABASE_URL3,
+    ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false
 });
-
-export default pool;
-
-
-
-
-
+exports.default = pool;
 // write a function to create a users table in your database.
 // import { Client } from 'pg'
- 
 // const client = new Client({
 //   connectionString: process.env.DATABASE_URL
 // })
-
 // async function createUsersTable() {
 //     await client.connect()
 //     const result = await client.query(`
@@ -35,5 +29,4 @@ export default pool;
 //     `)
 //     console.log(result)
 // }
-
 // createUsersTable();

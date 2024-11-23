@@ -12,11 +12,11 @@ const router = Router();
 
 // Public routes
 router.post('/login', login);
-router.post('/register', registerValidation, validateRequest, register);
+router.post('/register', registerValidation, register);
 
 // Protected routes
-router.get('/me', authenticateToken, getCurrentUser);
-router.put('/password', authenticateToken, updatePasswordValidation, validateRequest, updatePassword);
-router.put('/profile', authenticateToken, updateProfileValidation, validateRequest, updateProfile);
+// router.get('/me', authenticateToken, getCurrentUser);
+// router.put('/password', authenticateToken, updatePasswordValidation, validateRequest, updatePassword);
+// router.put('/profile', authenticateToken, updateProfileValidation, validateRequest, updateProfile);
 
 export default router; 

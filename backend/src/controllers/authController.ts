@@ -4,7 +4,7 @@ import pool from '../config/database';
 import { generateToken } from '../utils/jwt';
 import { AuthRequest, User } from '../types/auth.types';
 
-export const login = async (req: Request, res: Response) => {
+export const login = async (req: Request, res: Response) : Promise<any> => {
   try {
     const { email, password } = req.body;
 
@@ -19,7 +19,10 @@ export const login = async (req: Request, res: Response) => {
       return res.status(401).json({ message: 'Invalid credentials' });
     }
 
-    const isValidPassword = await bcrypt.compare(password, user.password);
+    // const isValidPassword = await bcrypt.compare(password, user.password); // Will change
+
+    const isValidPassword = password == user.password ;
+
 
     if (!isValidPassword) {
       return res.status(401).json({ message: 'Invalid credentials' });
@@ -42,7 +45,7 @@ export const login = async (req: Request, res: Response) => {
   }
 };
 
-export const register = async (req: Request, res: Response) => {
+export const register = async (req: Request, res: Response) : Promise<any> => {
   try {
     const { first_name, last_name, email, password, phone_number, unit_number } = req.body;
 
@@ -70,7 +73,7 @@ export const register = async (req: Request, res: Response) => {
   }
 };
 
-export const getCurrentUser = async (req: AuthRequest, res: Response) => {
+export const getCurrentUser = async (req: AuthRequest, res: Response) : Promise<any> => {
   try {
     const userId = req.user!.userId;
     
@@ -90,7 +93,7 @@ export const getCurrentUser = async (req: AuthRequest, res: Response) => {
   }
 };
 
-export const updatePassword = async (req: Request, res: Response) => {
+export const updatePassword = async (req: Request, res: Response): Promise<any> => {
   try {
     const userId = (req as any).user.userId;
     const { currentPassword, newPassword } = req.body;
@@ -122,7 +125,7 @@ export const updatePassword = async (req: Request, res: Response) => {
   }
 };
 
-export const updateProfile = async (req: Request, res: Response) => {
+export const updateProfile = async (req: Request, res: Response) : Promise<any> => {
   try {
     const userId = (req as any).user.userId;
     const { first_name, last_name, phone_number, unit_number } = req.body;

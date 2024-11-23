@@ -1,22 +1,28 @@
 import React, { useState } from 'react';
+import axios from 'axios';
+import { useNavigate } from 'react-router-dom';
 
-export default function LoginPage() {
-  const [formData, setFormData] = useState({
-    phoneNumber: '',
-    password: ''
-  });
+const LoginPage = () => {
+    const [email, setEmail] = useState('');
+    const [password, setPassword] = useState('');
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    console.log('Form submitted:', formData);
-  };
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setFormData({
-      ...formData,
-      [e.target.name]: e.target.value
-    });
-  };
+    const navigate = useNavigate();
+
+    const handleLogin = async (e: React.FormEvent) => {
+        e.preventDefault();
+        try {
+            const response = await axios.post('http://localhost:3000/api/auth/login', { email, password });
+            // Save token and user data as needed
+            localStorage.setItem('token',response.data.token);
+            localStorage.setItem('user',JSON.stringify(response.data.user));
+            console.log(JSON.parse(localStorage.getItem('user') || ""));
+            console.log(response.data);
+            navigate('/');
+        } catch (err) {
+            console.log('Invalid credentials');
+        }
+    };
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50">
@@ -26,7 +32,7 @@ export default function LoginPage() {
             Login to your account
           </h2>
         </div>
-        <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
+        <form className="mt-8 space-y-6" onSubmit={handleLogin}>
           <div className="rounded-md shadow-sm space-y-4">
             <div>
               <label htmlFor="phoneNumber" className="block text-sm font-medium text-gray-700">
@@ -39,8 +45,8 @@ export default function LoginPage() {
                 required
                 className="appearance-none rounded-md relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm"
                 placeholder="Enter your phone number"
-                value={formData.phoneNumber}
-                onChange={handleChange}
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
               />
             </div>
             <div>
@@ -54,8 +60,8 @@ export default function LoginPage() {
                 required
                 className="appearance-none rounded-md relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm"
                 placeholder="Enter your password"
-                value={formData.password}
-                onChange={handleChange}
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
               />
             </div>
           </div>
@@ -73,3 +79,5 @@ export default function LoginPage() {
     </div>
   );
 }
+
+export default LoginPage;

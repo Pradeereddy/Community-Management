@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import axios from 'axios';
 
 interface Event {
   event_id: number;
@@ -14,87 +15,59 @@ interface Event {
 }
 
 export default function Events() {
-  const [events] = useState<Event[]>([
-    {
-      event_id: 1,
-      event_name: "Summer Pool Party",
-      description: "Annual community pool party with games and refreshments",
-      event_date: "2024-06-15",
-      start_time: "14:00",
-      end_time: "18:00",
-      location: "Community Pool",
-      organized_by: 1,
-      max_participants: 50,
-      status: "Upcoming"
-    },
-    {
-      event_id: 2,
-      event_name: "Fitness Workshop",
-      description: "Learn about health and wellness from certified trainers",
-      event_date: "2024-03-20",
-      start_time: "10:00",
-      end_time: "12:00",
-      location: "Community Hall",
-      organized_by: 2,
-      max_participants: 30,
-      status: "Upcoming"
-    }
-  ]);
+  const [events, setEvents] = useState<Event[]>([]);
+  const [newEvent, setNewEvent] = useState({
+    event_name: '',
+    description: '',
+    event_date: '',
+    start_time: '',
+    end_time: '',
+    location: ''
+  });
 
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'Upcoming': return 'bg-blue-100 text-blue-800';
-      case 'Completed': return 'bg-green-100 text-green-800';
-      case 'Cancelled': return 'bg-red-100 text-red-800';
-      default: return '';
-    }
+  useEffect(() => {
+    fetchEvents();
+  }, []);
+
+  const fetchEvents = async () => {
+    const response = await axios.get('/api/v1/events');
+    setEvents(response.data);
+  };
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const { name, value } = e.target;
+    setNewEvent({ ...newEvent, [name]: value });
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    await axios.post('/api/v1/events', newEvent);
+    fetchEvents(); // Refresh events after adding
+    setNewEvent({ event_name: '', description: '', event_date: '', start_time: '', end_time: '', location: '' });
   };
 
   return (
     <div className="p-6">
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-3xl font-bold text-gray-800">Community Events</h1>
-        <button className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700">
-          Create Event
-        </button>
-      </div>
-
+      <h1 className="text-3xl font-bold text-gray-800">Community Events</h1>
+      <form onSubmit={handleSubmit} className="mb-6">
+        <div className="grid grid-cols-1 gap-4">
+          <input type="text" name="event_name" placeholder="Event Name" value={newEvent.event_name} onChange={handleInputChange} className="border rounded-md p-2" required />
+          <textarea name="description" placeholder="Description" value={newEvent.description} onChange={handleInputChange} className="border rounded-md p-2" required />
+          <input type="date" name="event_date" value={newEvent.event_date} onChange={handleInputChange} className="border rounded-md p-2" required />
+          <input type="time" name="start_time" value={newEvent.start_time} onChange={handleInputChange} className="border rounded-md p-2" required />
+          <input type="time" name="end_time" value={newEvent.end_time} onChange={handleInputChange} className="border rounded-md p-2" required />
+          <input type="text" name="location" placeholder="Location" value={newEvent.location} onChange={handleInputChange} className="border rounded-md p-2" required />
+          <button type="submit" className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700">Create Event</button>
+        </div>
+      </form>
       <div className="grid gap-4">
         {events.map((event) => (
-          <div 
-            key={event.event_id}
-            className="bg-white rounded-lg shadow-md p-4"
-          >
-            <div className="flex justify-between items-start">
-              <div>
-                <h2 className="text-xl font-semibold text-gray-700">
-                  {event.event_name}
-                </h2>
-                <p className="text-gray-600 mt-2">{event.description}</p>
-                <div className="mt-4 space-y-1">
-                  <p className="text-gray-600">
-                    <span className="font-medium">Date:</span> {new Date(event.event_date).toLocaleDateString()}
-                  </p>
-                  <p className="text-gray-600">
-                    <span className="font-medium">Time:</span> {event.start_time} - {event.end_time}
-                  </p>
-                  <p className="text-gray-600">
-                    <span className="font-medium">Location:</span> {event.location}
-                  </p>
-                  <p className="text-gray-600">
-                    <span className="font-medium">Capacity:</span> {event.max_participants} participants
-                  </p>
-                </div>
-              </div>
-              <span className={`px-3 py-1 rounded-full text-sm font-medium ${getStatusColor(event.status)}`}>
-                {event.status}
-              </span>
-            </div>
-            <div className="mt-4">
-              <button className="bg-blue-50 text-blue-600 px-4 py-2 rounded-md hover:bg-blue-100">
-                Register
-              </button>
-            </div>
+          <div key={event.event_id} className="bg-white rounded-lg shadow-md p-4">
+            <h2 className="text-xl font-semibold text-gray-700">{event.event_name}</h2>
+            <p>Description: {event.description}</p>
+            <p>Date: {new Date(event.event_date).toLocaleDateString()}</p>
+            <p>Time: {event.start_time} - {event.end_time}</p>
+            <p>Location: {event.location}</p>
           </div>
         ))}
       </div>

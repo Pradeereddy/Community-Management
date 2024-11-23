@@ -2,7 +2,7 @@ import { Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
 import { AuthRequest } from '../types/auth.types';
 
-export const authenticateToken = (req: AuthRequest, res: Response, next: NextFunction) => {
+export const authenticateToken = (req: AuthRequest, res: Response, next: NextFunction)  => {
     const authHeader = req.headers.get('authorization'); // req.headers['authorization'];
   const token = authHeader && authHeader.split(' ')[1];
 
