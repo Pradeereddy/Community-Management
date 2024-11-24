@@ -20,7 +20,7 @@ const LoginPage = () => {
             console.log(response.data);
             navigate('/');
         } catch (err) {
-            console.log('Invalid credentials');
+            console.log('Invalid credentials',err);
         }
     };
 

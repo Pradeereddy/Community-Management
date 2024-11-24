@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import bcrypt from 'bcrypt';
+import bcrypt from 'bcryptjs';
 import pool from '../config/database';
 import { generateToken } from '../utils/jwt';
 import { AuthRequest, User } from '../types/auth.types';
@@ -42,6 +42,7 @@ export const login = async (req: Request, res: Response) : Promise<any> => {
     });
   } catch (error) {
     res.status(500).json({ message: 'Server error' });
+    console.log(error);
   }
 };
 

@@ -8,12 +8,13 @@ export const createComplaint = async (req: Request, res: Response) => {
     try {
         const result = await pool.query(
             `INSERT INTO Complaints (resident_id, unit_number, complaint_type, description, status)
-             VALUES ($1, $2, $3, $4, 'Submitted') RETURNING *`,
+             VALUES ($1, $2, $3, $4, 'Open') RETURNING *`,
             [resident_id, unit_number, complaint_type, description]
         );
         res.status(201).json({ message: 'Complaint created', complaint: result.rows[0] });
     } catch (error) {
         res.status(500).json({ message: 'Server error' });
+        console.log(error);
     }
 };
 
@@ -142,6 +143,25 @@ export const updateMaintenanceRequestStatus = async (req: Request, res: Response
     }
 };
 
+export const event = async (req: Request, res: Response) => {
+    const { event_name, event_date, event_location, description } = req.body;
+
+    try {
+        // Insert a new event into the Events table
+        const result = await pool.query(
+            `INSERT INTO Events (event_name, event_date, event_location, description)
+             VALUES ($1, $2, $3, $4) RETURNING *`, // RETURNING * to get the inserted row
+            [event_name, event_date, event_location, description]
+        );
+
+        // Respond with the created event
+        res.status(201).json({ message: 'Event created successfully', event: result.rows[0] });
+    } catch (error) {
+        // Handle any errors that occur during the insert
+        res.status(500).json({ message: 'Server error' });
+        console.error(error); // Log the error for debugging purposes
+    }
+};
 
 
 // Function to get events
@@ -384,17 +404,19 @@ export const getAnnouncements = async (req: Request, res: Response) => {
 };
 
 // Function to create a new announcement
+
 export const createAnnouncement = async (req: Request, res: Response) => {
     const { title, description, is_urgent, posted_by, unit_number, expiry_date } = req.body; // Updated to include new fields
     try {
         const result = await pool.query(
             `INSERT INTO Announcements (title, description, is_urgent, posted_by, unit_number, expiry_date)
              VALUES ($1, $2, $3, $4, $5, $6) RETURNING *`,
-            [title, description, is_urgent, posted_by, unit_number, expiry_date]
+            [title, description, is_urgent, posted_by, unit_number || null, expiry_date || null]
         );
         res.status(201).json({ message: 'Announcement created', announcement: result.rows[0] });
     } catch (error) {
         res.status(500).json({ message: 'Server error' });
+        console.log(error); 
     }
 };
 

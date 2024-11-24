@@ -10,11 +10,12 @@ const createComplaint = async (req, res) => {
     const { resident_id, unit_number, complaint_type, description } = req.body;
     try {
         const result = await database_1.default.query(`INSERT INTO Complaints (resident_id, unit_number, complaint_type, description, status)
-             VALUES ($1, $2, $3, $4, 'Submitted') RETURNING *`, [resident_id, unit_number, complaint_type, description]);
+             VALUES ($1, $2, $3, $4, 'Open') RETURNING *`, [resident_id, unit_number, complaint_type, description]);
         res.status(201).json({ message: 'Complaint created', complaint: result.rows[0] });
     }
     catch (error) {
         res.status(500).json({ message: 'Server error' });
+        console.log(error);
     }
 };
 exports.createComplaint = createComplaint;
@@ -305,11 +306,12 @@ const createAnnouncement = async (req, res) => {
     const { title, description, is_urgent, posted_by, unit_number, expiry_date } = req.body; // Updated to include new fields
     try {
         const result = await database_1.default.query(`INSERT INTO Announcements (title, description, is_urgent, posted_by, unit_number, expiry_date)
-             VALUES ($1, $2, $3, $4, $5, $6) RETURNING *`, [title, description, is_urgent, posted_by, unit_number, expiry_date]);
+             VALUES ($1, $2, $3, $4, $5, $6) RETURNING *`, [title, description, is_urgent, posted_by, unit_number || null, expiry_date || null]);
         res.status(201).json({ message: 'Announcement created', announcement: result.rows[0] });
     }
     catch (error) {
         res.status(500).json({ message: 'Server error' });
+        console.log(error);
     }
 };
 exports.createAnnouncement = createAnnouncement;

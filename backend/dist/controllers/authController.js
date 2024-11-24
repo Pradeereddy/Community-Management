@@ -4,7 +4,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.updateProfile = exports.updatePassword = exports.getCurrentUser = exports.register = exports.login = void 0;
-const bcrypt_1 = __importDefault(require("bcrypt"));
+const bcryptjs_1 = __importDefault(require("bcryptjs"));
 const database_1 = __importDefault(require("../config/database"));
 const jwt_1 = require("../utils/jwt");
 const login = async (req, res) => {
@@ -34,13 +34,14 @@ const login = async (req, res) => {
     }
     catch (error) {
         res.status(500).json({ message: 'Server error' });
+        console.log(error);
     }
 };
 exports.login = login;
 const register = async (req, res) => {
     try {
         const { first_name, last_name, email, password, phone_number, unit_number } = req.body;
-        const hashedPassword = await bcrypt_1.default.hash(password, 10);
+        const hashedPassword = await bcryptjs_1.default.hash(password, 10);
         const result = await database_1.default.query(`INSERT INTO Users (first_name, last_name, email, password, phone_number, unit_number, role)
        VALUES ($1, $2, $3, $4, $5, $6, 'Resident')
        RETURNING user_id, email, first_name, last_name, role`, [first_name, last_name, email, hashedPassword, phone_number, unit_number]);
