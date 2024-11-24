@@ -3,7 +3,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.registerVisitor = exports.deleteApartment = exports.updateApartment = exports.addNewApartment = exports.getAllApartments = exports.unassignParkingSlot = exports.assignParkingSlot = exports.getParkingSlots = exports.deleteAnnouncement = exports.editAnnouncement = exports.createAnnouncement = exports.getAnnouncements = exports.markExitTime = exports.approveVisitor = exports.getVisitors = exports.updateFacilityBookingStatus = exports.cancelFacilityBooking = exports.bookFacility = exports.getFacilities = exports.cancelEventRegistration = exports.registerForEvent = exports.getEvents = exports.updateMaintenanceRequestStatus = exports.getMaintenanceRequests = exports.createMaintenanceRequest = exports.updateComplaintStatus = exports.getComplaints = exports.createComplaint = void 0;
+exports.createEvent = exports.registerVisitor = exports.deleteApartment = exports.updateApartment = exports.addNewApartment = exports.getAllApartments = exports.unassignParkingSlot = exports.assignParkingSlot = exports.getParkingSlots = exports.deleteAnnouncement = exports.editAnnouncement = exports.createAnnouncement = exports.getAnnouncements = exports.markExitTime = exports.approveVisitor = exports.getVisitors = exports.updateFacilityBookingStatus = exports.cancelFacilityBooking = exports.bookFacility = exports.getFacilities = exports.cancelEventRegistration = exports.registerForEvent = exports.getEvents = exports.updateMaintenanceRequestStatus = exports.getMaintenanceRequests = exports.createMaintenanceRequest = exports.updateComplaintStatus = exports.getComplaints = exports.createComplaint = void 0;
 const database_1 = __importDefault(require("../config/database"));
 // Function to create a complaint
 const createComplaint = async (req, res) => {
@@ -163,7 +163,7 @@ exports.cancelEventRegistration = cancelEventRegistration;
 const getFacilities = async (req, res) => {
     // Assuming you have a Facilities table, otherwise adjust accordingly
     try {
-        const result = await database_1.default.query('SELECT * FROM Facilities');
+        const result = await database_1.default.query('SELECT * FROM FacilityBookings');
         res.json(result.rows);
     }
     catch (error) {
@@ -508,3 +508,21 @@ const registerVisitor = async (req, res) => {
     }
 };
 exports.registerVisitor = registerVisitor;
+// Function to create a new event
+const createEvent = async (req, res) => {
+    const { event_name, description, event_date, start_time, end_time, location, organized_by, max_participants } = req.body;
+    // Check if the user is staff
+    const currentUserRole = req.body.user_role; // Replace with actual user role from auth context
+    if (currentUserRole !== 'staff') {
+        return res.status(403).json({ message: 'Not authorized to create events' });
+    }
+    try {
+        const result = await database_1.default.query(`INSERT INTO Events (event_name, description, event_date, start_time, end_time, location, organized_by, max_participants, status)
+             VALUES ($1, $2, $3, $4, $5, $6, $7, $8, 'Upcoming') RETURNING *`, [event_name, description, event_date, start_time, end_time, location, organized_by, max_participants]);
+        res.status(201).json({ message: 'Event created', event: result.rows[0] });
+    }
+    catch (error) {
+        res.status(500).json({ message: 'Server error' });
+    }
+};
+exports.createEvent = createEvent;

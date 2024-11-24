@@ -22,7 +22,9 @@ export default function Events() {
     event_date: '',
     start_time: '',
     end_time: '',
-    location: ''
+    location: '',
+    organized_by: 1,
+    max_participants: 100
   });
 
   useEffect(() => {
@@ -30,7 +32,7 @@ export default function Events() {
   }, []);
 
   const fetchEvents = async () => {
-    const response = await axios.get('/api/v1/events');
+    const response = await axios.get('http://localhost:3000/api/v1/events');
     setEvents(response.data);
   };
 
@@ -41,9 +43,9 @@ export default function Events() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    await axios.post('/api/v1/events', newEvent);
+    await axios.post('http://localhost:3000/api/v1/events', newEvent);
     fetchEvents(); // Refresh events after adding
-    setNewEvent({ event_name: '', description: '', event_date: '', start_time: '', end_time: '', location: '' });
+    setNewEvent({ event_name: '', description: '', event_date: '', start_time: '', end_time: '', location: '', organized_by: 1, max_participants: 100 });
   };
 
   return (

@@ -71,7 +71,7 @@ const getCurrentUser = async (req, res) => {
         res.json({ user });
     }
     catch (error) {
-        res.status(500).json({ message: 'Server error' });
+        return res.status(500).json({ message: 'Server error' });
     }
 };
 exports.getCurrentUser = getCurrentUser;
@@ -84,11 +84,13 @@ const updatePassword = async (req, res) => {
         if (!user) {
             return res.status(404).json({ message: 'User not found' });
         }
-        const isValidPassword = await bcrypt_1.default.compare(currentPassword, user.password);
+        // const isValidPassword = await bcrypt.compare(currentPassword, user.password);
+        const isValidPassword = currentPassword == user.password;
         if (!isValidPassword) {
             return res.status(401).json({ message: 'Current password is incorrect' });
         }
-        const hashedPassword = await bcrypt_1.default.hash(newPassword, 10);
+        // const hashedPassword = await bcrypt.hash(newPassword, 10);
+        const hashedPassword = newPassword;
         await database_1.default.query('UPDATE Users SET password = $1 WHERE user_id = $2', [hashedPassword, userId]);
         res.json({ message: 'Password updated successfully' });
     }

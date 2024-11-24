@@ -6,10 +6,11 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.requireAdmin = exports.authenticateToken = void 0;
 const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
 const authenticateToken = (req, res, next) => {
-    const authHeader = req.headers.get('authorization'); // req.headers['authorization'];
+    const authHeader = req.headers['authorization']; // req.headers.get('authorization');
     const token = authHeader && authHeader.split(' ')[1];
     if (!token) {
-        return res.status(401).json({ message: 'Authentication required' });
+        res.status(401).json({ message: 'Authentication required' });
+        return;
     }
     try {
         const decoded = jsonwebtoken_1.default.verify(token, process.env.JWT_SECRET);
@@ -17,7 +18,8 @@ const authenticateToken = (req, res, next) => {
         next();
     }
     catch (error) {
-        return res.status(403).json({ message: 'Invalid token' });
+        res.status(403).json({ message: 'Invalid token' });
+        return;
     }
 };
 exports.authenticateToken = authenticateToken;

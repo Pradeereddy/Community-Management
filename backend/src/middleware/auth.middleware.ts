@@ -2,12 +2,13 @@ import { Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
 import { AuthRequest } from '../types/auth.types';
 
-export const authenticateToken = (req: AuthRequest, res: Response, next: NextFunction)  => {
-    const authHeader = req.headers.get('authorization'); // req.headers['authorization'];
+export const authenticateToken = (req: AuthRequest, res: Response, next: NextFunction) : void => {
+    const authHeader = req.headers['authorization'];  // req.headers.get('authorization');
   const token = authHeader && authHeader.split(' ')[1];
 
   if (!token) {
-    return res.status(401).json({ message: 'Authentication required' });
+    res.status(401).json({ message: 'Authentication required' });
+    return;
   }
 
   try {
@@ -15,7 +16,8 @@ export const authenticateToken = (req: AuthRequest, res: Response, next: NextFun
     req.user = decoded;
     next();
   } catch (error) {
-    return res.status(403).json({ message: 'Invalid token' });
+    res.status(403).json({ message: 'Invalid token' });
+    return;
   }
 };
 

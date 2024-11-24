@@ -206,7 +206,7 @@ export const cancelEventRegistration = async (req: Request, res: Response) : Pro
 export const getFacilities = async (req: Request, res: Response) => {
     // Assuming you have a Facilities table, otherwise adjust accordingly
     try {
-        const result = await pool.query('SELECT * FROM Facilities');
+        const result = await pool.query('SELECT * FROM FacilityBookings');
         res.json(result.rows);
     } catch (error) {
         res.status(500).json({ message: 'Server error' });
@@ -649,6 +649,28 @@ export const registerVisitor = async (req: Request, res: Response) : Promise<any
         );
 
         res.status(201).json({ message: 'Visitor registered', visitor: result.rows[0] });
+    } catch (error) {
+        res.status(500).json({ message: 'Server error' });
+    }
+};
+
+// Function to create a new event
+export const createEvent = async (req: Request, res: Response) : Promise<any> => {
+    const { event_name, description, event_date, start_time, end_time, location, organized_by, max_participants } = req.body;
+
+    // Check if the user is staff
+    const currentUserRole = req.body.user_role; // Replace with actual user role from auth context
+    if (currentUserRole !== 'staff') {
+        return res.status(403).json({ message: 'Not authorized to create events' });
+    }
+
+    try {
+        const result = await pool.query(
+            `INSERT INTO Events (event_name, description, event_date, start_time, end_time, location, organized_by, max_participants, status)
+             VALUES ($1, $2, $3, $4, $5, $6, $7, $8, 'Upcoming') RETURNING *`,
+            [event_name, description, event_date, start_time, end_time, location, organized_by, max_participants]
+        );
+        res.status(201).json({ message: 'Event created', event: result.rows[0] });
     } catch (error) {
         res.status(500).json({ message: 'Server error' });
     }

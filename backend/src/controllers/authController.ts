@@ -89,7 +89,7 @@ export const getCurrentUser = async (req: AuthRequest, res: Response) : Promise<
 
     res.json({ user });
   } catch (error: any) {
-    res.status(500).json({ message: 'Server error' });
+    return res.status(500).json({ message: 'Server error' });
   }
 };
 
@@ -108,12 +108,14 @@ export const updatePassword = async (req: Request, res: Response): Promise<any> 
       return res.status(404).json({ message: 'User not found' });
     }
 
-    const isValidPassword = await bcrypt.compare(currentPassword, user.password);
+    // const isValidPassword = await bcrypt.compare(currentPassword, user.password);
+    const isValidPassword = currentPassword == user.password;
     if (!isValidPassword) {
       return res.status(401).json({ message: 'Current password is incorrect' });
     }
 
-    const hashedPassword = await bcrypt.hash(newPassword, 10);
+    // const hashedPassword = await bcrypt.hash(newPassword, 10);
+    const hashedPassword = newPassword;
     await pool.query(
       'UPDATE Users SET password = $1 WHERE user_id = $2',
       [hashedPassword, userId]

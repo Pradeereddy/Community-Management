@@ -17,14 +17,25 @@ export default function MaintenanceRequests() {
     unit_number: '',
     request_description: ''
   });
+  const [statusUpdate, setStatusUpdate] = useState<{ id: number; status: string } | null>(null);
+  const [userRole, setUserRole] = useState<string | null>(null);
 
   useEffect(() => {
     fetchRequests();
+    getUserRole(); // Fetch user role on component mount
   }, []);
 
   const fetchRequests = async () => {
-    const response = await axios.get('/api/v1/maintenance-requests');
+    const response = await axios.get('http://localhost:3000/api/v1/maintenance-requests');
     setRequests(response.data);
+  };
+
+  const getUserRole = () => {
+    const token = localStorage.getItem('user'); // Adjust the key based on your implementation
+    if (token) {
+      const user = JSON.parse(token); // Decode the token to get user info
+      setUserRole(user.role); // Assuming the role is stored in the token
+    }
   };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
@@ -34,9 +45,17 @@ export default function MaintenanceRequests() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    await axios.post('/api/v1/maintenance-requests', newRequest);
+    await axios.post('http://localhost:3000/api/v1/maintenance-requests', newRequest);
     fetchRequests(); // Refresh requests after adding
     setNewRequest({ resident_id: '', unit_number: '', request_description: '' });
+  };
+
+  const handleStatusChange = async (requestId: number) => {
+    if (statusUpdate) {
+      await axios.put(`http://localhost:3000/api/v1/maintenance-requests/${requestId}/status`, { status: statusUpdate.status });
+      fetchRequests(); // Refresh requests after updating status
+      setStatusUpdate(null); // Reset status update
+    }
   };
 
   return (
@@ -57,6 +76,22 @@ export default function MaintenanceRequests() {
             <p>Description: {request.request_description}</p>
             <p>Status: {request.status}</p>
             <p>Submitted: {new Date(request.date_submitted).toLocaleDateString()}</p>
+            <select
+              value={statusUpdate?.status || request.status}
+              onChange={(e) => setStatusUpdate({ id: request.request_id, status: e.target.value })}
+              className="border rounded-md p-2"
+            >
+              <option value="Open">Open</option>
+              <option value="In_progress">In Progress</option>
+              <option value="Completed">Completed</option>
+            </select>
+            <button 
+              onClick={() => handleStatusChange(request.request_id)} 
+              className={`px-4 py-2 rounded-md ${userRole === 'staff' ? 'bg-green-600 hover:bg-green-700 text-white' : 'bg-gray-400 text-gray-700 cursor-not-allowed'}`} 
+              disabled={userRole !== 'staff'} // Disable button if user is not staff
+            >
+              Update Status
+            </button>
           </div>
         ))}
       </div>

@@ -14,60 +14,55 @@ interface FacilityBooking {
 
 export default function FacilityBookings() {
   const [bookings, setBookings] = useState<FacilityBooking[]>([]);
-  const [newBooking, setNewBooking] = useState({
-    resident_id: '',
-    unit_number: '',
-    facility_name: '',
-    booking_date: '',
-    start_time: '',
-    end_time: ''
-  });
+  const [currentUserRole, setCurrentUserRole] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     fetchBookings();
+    const user = JSON.parse(localStorage.getItem('user') || '{}');
+    setCurrentUserRole(user?.role);
   }, []);
 
   const fetchBookings = async () => {
-    const response = await axios.get('/api/v1/facilities');
-    setBookings(response.data);
+    try {
+      const response = await axios.get('http://localhost:3000/api/v1/facilities');
+      setBookings(response.data);
+    } catch (err) {
+      setError('Failed to fetch bookings. Please try again later.');
+      console.error(err);
+    }
   };
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-    const { name, value } = e.target;
-    setNewBooking({ ...newBooking, [name]: value });
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    await axios.post('/api/v1/facilities/:id/book', newBooking);
-    fetchBookings(); // Refresh bookings after adding
-    setNewBooking({ resident_id: '', unit_number: '', facility_name: '', booking_date: '', start_time: '', end_time: '' });
+  const handleUpdateStatus = async (bookingId: number, status: 'Approved' | 'Rejected') => {
+    await axios.put(`http://localhost:3000/api/v1/facilities/${bookingId}/updateStatus`, { status, user_role: currentUserRole });
+    fetchBookings(); // Refresh bookings after status update
   };
 
   return (
     <div className="p-6">
       <h1 className="text-3xl font-bold text-gray-800">Facility Bookings</h1>
-      <form onSubmit={handleSubmit} className="mb-6">
-        <div className="grid grid-cols-1 gap-4">
-          <input type="text" name="resident_id" placeholder="Resident ID" value={newBooking.resident_id} onChange={handleInputChange} className="border rounded-md p-2" required />
-          <input type="text" name="unit_number" placeholder="Unit Number" value={newBooking.unit_number} onChange={handleInputChange} className="border rounded-md p-2" required />
-          <input type="text" name="facility_name" placeholder="Facility Name" value={newBooking.facility_name} onChange={handleInputChange} className="border rounded-md p-2" required />
-          <input type="date" name="booking_date" value={newBooking.booking_date} onChange={handleInputChange} className="border rounded-md p-2" required />
-          <input type="time" name="start_time" value={newBooking.start_time} onChange={handleInputChange} className="border rounded-md p-2" required />
-          <input type="time" name="end_time" value={newBooking.end_time} onChange={handleInputChange} className="border rounded-md p-2" required />
-          <button type="submit" className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700">Create Booking</button>
+      {error && <p className="text-red-500">{error}</p>}
+      {bookings.length === 0 ? (
+        <p>No bookings available.</p>
+      ) : (
+        <div className="grid gap-4">
+          {bookings.map((booking) => (
+            <div key={booking.booking_id} className="bg-white rounded-lg shadow-md p-4">
+              <h2 className="text-xl font-semibold text-gray-700">{booking.facility_name}</h2>
+              <p>Unit: {booking.unit_number}</p>
+              <p>Date: {new Date(booking.booking_date).toLocaleDateString()}</p>
+              <p>Time: {booking.start_time} - {booking.end_time}</p>
+              <p>Status: {booking.status}</p>
+              {currentUserRole === 'staff' && (
+                <div className="flex space-x-2">
+                  <button onClick={() => handleUpdateStatus(booking.booking_id, 'Approved')} className="bg-green-600 text-white px-2 py-1 rounded-md hover:bg-green-700">Approve</button>
+                  <button onClick={() => handleUpdateStatus(booking.booking_id, 'Rejected')} className="bg-red-600 text-white px-2 py-1 rounded-md hover:bg-red-700">Reject</button>
+                </div>
+              )}
+            </div>
+          ))}
         </div>
-      </form>
-      <div className="grid gap-4">
-        {bookings.map((booking) => (
-          <div key={booking.booking_id} className="bg-white rounded-lg shadow-md p-4">
-            <h2 className="text-xl font-semibold text-gray-700">{booking.facility_name}</h2>
-            <p>Unit: {booking.unit_number}</p>
-            <p>Date: {new Date(booking.booking_date).toLocaleDateString()}</p>
-            <p>Time: {booking.start_time} - {booking.end_time}</p>
-          </div>
-        ))}
-      </div>
+      )}
     </div>
   );
 } 

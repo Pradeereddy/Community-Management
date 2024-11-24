@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import axios from 'axios';
 
 interface Complaint {
   complaint_id: number;
@@ -12,36 +13,53 @@ interface Complaint {
 }
 
 export default function Complaints() {
-  const [complaints] = useState<Complaint[]>([
-    {
-      complaint_id: 1,
-      resident_id: 1,
-      unit_number: "A101",
-      complaint_type: "Noise",
-      description: "Loud music from unit above after 11 PM",
-      status: "Submitted",
-      date_submitted: "2024-03-15T22:30:00"
-    },
-    {
-      complaint_id: 2,
-      resident_id: 2,
-      unit_number: "B205",
-      complaint_type: "Security",
-      description: "Main gate security camera not working",
-      status: "In_progress",
-      date_submitted: "2024-03-14T09:15:00"
-    },
-    {
-      complaint_id: 3,
-      resident_id: 3,
-      unit_number: "C304",
-      complaint_type: "Maintenance",
-      description: "Water leakage from ceiling",
-      status: "Resolved",
-      date_submitted: "2024-03-13T14:20:00",
-      date_resolved: "2024-03-14T16:30:00"
+  const [complaints, setComplaints] = useState<Complaint[]>([]);
+  const [newComplaint, setNewComplaint] = useState({
+    resident_id: '',
+    unit_number: '',
+    complaint_type: 'Noise' as 'Noise' | 'Maintenance' | 'Security' | 'Other',
+    description: ''
+  });
+  const [isAdding, setIsAdding] = useState(false);
+
+  useEffect(() => {
+    fetchComplaints();
+  }, []);
+
+  const fetchComplaints = async () => {
+    try {
+      const response = await axios.get('http://localhost:3000/api/v1/complaints');
+      setComplaints(response.data);
+    } catch (error) {
+      console.error('Error fetching complaints:', error);
     }
-  ]);
+  };
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
+    const { name, value } = e.target;
+    setNewComplaint({ ...newComplaint, [name]: value });
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    try {
+      await axios.post('http://localhost:3000/api/v1/complaints', newComplaint);
+      fetchComplaints(); // Refresh complaints after adding
+      setNewComplaint({ resident_id: '', unit_number: '', complaint_type: 'Noise', description: '' }); // Reset form
+      setIsAdding(false); // Hide the form after submission
+    } catch (error) {
+      console.error('Error submitting complaint:', error);
+    }
+  };
+
+  const updateStatus = async (complaintId: number, newStatus: 'In_progress' | 'Resolved') => {
+    try {
+      await axios.put(`http://localhost:3000/api/v1/complaints/${complaintId}`, { status: newStatus });
+      fetchComplaints(); // Refresh complaints after updating status
+    } catch (error) {
+      console.error('Error updating complaint status:', error);
+    }
+  };
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -66,10 +84,25 @@ export default function Complaints() {
     <div className="p-6">
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-3xl font-bold text-gray-800">Complaints</h1>
-        <button className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700">
+        <button onClick={() => setIsAdding(true)} className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700">
           File Complaint
         </button>
       </div>
+
+      {isAdding && (
+        <form onSubmit={handleSubmit} className="mb-6">
+          <input type="text" name="resident_id" placeholder="Resident ID" value={newComplaint.resident_id} onChange={handleInputChange} className="border rounded-md p-2 mb-2 w-full" required />
+          <input type="text" name="unit_number" placeholder="Unit Number" value={newComplaint.unit_number} onChange={handleInputChange} className="border rounded-md p-2 mb-2 w-full" required />
+          <select name="complaint_type" value={newComplaint.complaint_type} onChange={handleInputChange} className="border rounded-md p-2 mb-2 w-full" required>
+            <option value="Noise">Noise</option>
+            <option value="Maintenance">Maintenance</option>
+            <option value="Security">Security</option>
+            <option value="Other">Other</option>
+          </select>
+          <textarea name="description" placeholder="Description" value={newComplaint.description} onChange={handleInputChange} className="border rounded-md p-2 mb-2 w-full" required />
+          <button type="submit" className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700">Submit Complaint</button>
+        </form>
+      )}
 
       <div className="grid gap-4">
         {complaints.map((complaint) => (
@@ -98,6 +131,12 @@ export default function Complaints() {
                 <p>Resolved: {new Date(complaint.date_resolved).toLocaleString()}</p>
               )}
             </div>
+            {complaint.status === 'Submitted' && (
+              <button onClick={() => updateStatus(complaint.complaint_id, 'In_progress')} className="bg-blue-500 text-white px-2 py-1 rounded-md mt-2">Start Processing</button>
+            )}
+            {complaint.status === 'In_progress' && (
+              <button onClick={() => updateStatus(complaint.complaint_id, 'Resolved')} className="bg-green-500 text-white px-2 py-1 rounded-md mt-2">Mark as Resolved</button>
+            )}
           </div>
         ))}
       </div>
