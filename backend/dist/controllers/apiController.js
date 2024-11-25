@@ -3,7 +3,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.createEvent = exports.registerVisitor = exports.deleteApartment = exports.updateApartment = exports.addNewApartment = exports.getAllApartments = exports.unassignParkingSlot = exports.assignParkingSlot = exports.getParkingSlots = exports.deleteAnnouncement = exports.editAnnouncement = exports.createAnnouncement = exports.getAnnouncements = exports.markExitTime = exports.approveVisitor = exports.getVisitors = exports.updateFacilityBookingStatus = exports.cancelFacilityBooking = exports.bookFacility = exports.getFacilities = exports.cancelEventRegistration = exports.registerForEvent = exports.getEvents = exports.updateMaintenanceRequestStatus = exports.getMaintenanceRequests = exports.createMaintenanceRequest = exports.updateComplaintStatus = exports.getComplaints = exports.createComplaint = void 0;
+exports.createEvent = exports.registerVisitor = exports.deleteApartment = exports.updateApartment = exports.addNewApartment = exports.getAllApartments = exports.unassignParkingSlot = exports.assignParkingSlot = exports.getParkingSlots = exports.deleteAnnouncement = exports.editAnnouncement = exports.createAnnouncement = exports.getAnnouncements = exports.markExitTime = exports.approveVisitor = exports.getVisitors = exports.updateFacilityBookingStatus = exports.cancelFacilityBooking = exports.bookFacility = exports.getFacilities = exports.cancelEventRegistration = exports.registerForEvent = exports.getEvents = exports.event = exports.updateMaintenanceRequestStatus = exports.getMaintenanceRequests = exports.createMaintenanceRequest = exports.updateComplaintStatus = exports.getComplaints = exports.createComplaint = void 0;
 const database_1 = __importDefault(require("../config/database"));
 // Function to create a complaint
 const createComplaint = async (req, res) => {
@@ -116,6 +116,23 @@ const updateMaintenanceRequestStatus = async (req, res) => {
     }
 };
 exports.updateMaintenanceRequestStatus = updateMaintenanceRequestStatus;
+const event = async (req, res) => {
+    const { event_name, event_date, event_location, description } = req.body;
+    try {
+        // Insert a new event into the Events table
+        const result = await database_1.default.query(`INSERT INTO Events (event_name, event_date, event_location, description)
+             VALUES ($1, $2, $3, $4) RETURNING *`, // RETURNING * to get the inserted row
+        [event_name, event_date, event_location, description]);
+        // Respond with the created event
+        res.status(201).json({ message: 'Event created successfully', event: result.rows[0] });
+    }
+    catch (error) {
+        // Handle any errors that occur during the insert
+        res.status(500).json({ message: 'Server error' });
+        console.error(error); // Log the error for debugging purposes
+    }
+};
+exports.event = event;
 // Function to get events
 const getEvents = async (req, res) => {
     try {
